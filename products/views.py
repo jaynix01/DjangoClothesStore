@@ -7,6 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.db.models.query import QuerySet
+from django.core.cache import cache
+
 
 
 
@@ -27,7 +29,12 @@ class ProducsListView(ListView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super(ProducsListView, self).get_context_data()
         context['title'] = 'Store - Каталог'
-        context['categories'] = ProductCategory.objects.all()
+        categories = cache.get('categories')
+        if not categories:
+            context['categories'] = ProductCategory.objects.all()
+            cache.set('categories', context['categories'],30)
+        else:
+            context['categories'] = categories
         return context
 
     def get_queryset(self) -> QuerySet[Any]:
